@@ -23,6 +23,14 @@ app.listen(PORT, () => {
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use('/images', express.static('public/images'));
+app.use(
+  cors({
+    origin: ["http://localhost:3000", "https://zacracproject.vercel.app"],
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    credentials: true,
+  })
+);
 
 app.post('/api/additems', async (req, res) => {
   try {
@@ -47,12 +55,3 @@ app.get('/api/itemlist', async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 });
-
-app.use(
-    cors({
-      origin: "http://localhost:3000",
-      methods: ["GET", "POST", "PUT", "DELETE"],
-      allowedHeaders: ['Content-Type', 'Authorization'],
-      credentials: true,
-    })
-  );
