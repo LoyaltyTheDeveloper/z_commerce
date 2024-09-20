@@ -6,6 +6,7 @@ require('dotenv').config();
 const cors = require("cors");
 const { MONGO_URL } = process.env;
 const Item = require("./Model/itemModel");
+const Order = require("./Model/orderModel");
 
 
 mongoose
@@ -51,6 +52,19 @@ app.get('/api/itemlist', async (req, res) => {
   try {
     const items = await Item.find(); 
     res.json(items);  
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+app.post('/api/orderitem', async (req, res) => {
+  try {
+    const { name, city, state, address, itemName, itemImage, price, quantity } = req.body;
+    const newOrder = new Order({
+      name, city, state, address, itemName, itemImage, price, quantity
+    });
+    const savedOrder = await newOrder.save();
+    res.status(201).json({ message: "Order placed successfully", success: true, savedOrder });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
