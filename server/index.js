@@ -59,9 +59,9 @@ app.get('/api/itemlist', async (req, res) => {
 
 app.post('/api/orderitem', async (req, res) => {
   try {
-    const { name, city, state, address, itemName, itemImage, price, quantity } = req.body;
+    const { name, city, state, address, itemName, itemImage, price, quantity, channel } = req.body;
     const newOrder = new Order({
-      name, city, state, address, itemName, itemImage, price, quantity
+      name, city, state, address, itemName, itemImage, price, quantity, channel
     });
     const savedOrder = await newOrder.save();
     res.status(201).json({ message: "Order placed successfully", success: true, savedOrder });
