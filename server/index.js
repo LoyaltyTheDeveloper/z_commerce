@@ -7,7 +7,11 @@ const cors = require("cors");
 const { MONGO_URL } = process.env;
 const Item = require("./Model/itemModel");
 const Order = require("./Model/orderModel");
-
+const User = require("./Model/userModel");
+const jwt = require("jsonwebtoken");
+const bcrypt = require("bcryptjs");
+const userOrder = require("./Model/userOrderModel");
+const { requireAuth } = require('./Middleware/authMiddleware');
 
 mongoose
   .connect(MONGO_URL, {
@@ -32,6 +36,12 @@ app.use(
     credentials: true,
   })
 );
+
+const createSecretToken = ({_id, firstName}) => {  
+  return jwt.sign({_id, firstName}, process.env.TOKEN_KEY, { 
+    expiresIn: '30d',
+  });
+}
 
 app.post('/api/additems', async (req, res) => {
   try {
@@ -65,6 +75,63 @@ app.post('/api/orderitem', async (req, res) => {
     });
     const savedOrder = await newOrder.save();
     res.status(201).json({ message: "Order placed successfully", success: true, savedOrder });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+app.post('/api/register', async (req, res, next) => {
+  try {
+    const { firstName, lastName, email, gender, city, state, password, channel } = req.body;
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const existingEmail = await User.findOne({ email });
+    if (existingEmail) {
+      return res.json({ message: "Email already in use. Please use another email." });
+    }
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({ message: 'Invalid email format' });
+    }
+    const newUser = new User({
+      firstName, lastName, email, gender, city, state, password, channel
+    });
+    const savedUser = await newUser.save();
+    const token = createSecretToken({_id:savedUser._id, firstName:savedUser.firstName})
+    res.status(201).json({ message: "User registered successfully!", success: true, token, firstName: savedUser.firstName });
+    next()
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+app.post('/api/login', async (req, res, next) => {
+  try {
+    const { email, password } = req.body;
+    const savedUser = await User.findOne({ email });
+      if(!savedUser){
+        return res.json({message:'Incorrect email' }) 
+      }
+      const savedPass = await bcrypt.compare(password, savedUser.password)
+      if (!savedPass) {
+        return res.json({message:'Incorrect password. Please try again.' }) 
+      }
+    const token = createSecretToken({_id:savedUser._id, firstName:savedUser.firstName})
+    res.status(200).json({ message: "Login successful!", success: true, token, firstName: savedUser.firstName });
+    next()
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+app.post('/api/orderproduct', requireAuth, async (req, res, next) => {
+  try {
+    const { productId, price, quantity, totalPrice } = req.body;
+    const { _id } = req.savedUser;
+    const newUserOrder = new userOrder({
+      productId, price, quantity, totalPrice, customerId:_id
+    });
+    const savedUserOrder = await newUserOrder.save();
+    res.status(201).json({ message: "Order successful!", success: true, savedUserOrder });
+    next()
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
