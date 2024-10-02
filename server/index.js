@@ -96,7 +96,7 @@ app.post('/api/register', async (req, res, next) => {
     });
     const savedUser = await newUser.save();
     const token = createSecretToken({_id:savedUser._id, firstName:savedUser.firstName})
-    res.status(201).json({ message: "User registered successfully!", success: true, token, firstName: savedUser.firstName });
+    res.status(201).json({ message: "User registered successfully!", success: true, token, firstName: savedUser.firstName, lastName: savedUser.lastName, email: savedUser.email });
     next()
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -115,7 +115,7 @@ app.post('/api/login', async (req, res, next) => {
         return res.json({message:'Incorrect password. Please try again.' }) 
       }
     const token = createSecretToken({_id:savedUser._id, firstName:savedUser.firstName})
-    res.status(200).json({ message: "Login successful!", success: true, token, firstName: savedUser.firstName });
+    res.status(200).json({ message: "Login successful!", success: true, token, firstName: savedUser.firstName, lastName: savedUser.lastName, email: savedUser.email });
     next()
   } catch (error) {
     res.status(500).json({ message: error.message });
