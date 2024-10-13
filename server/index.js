@@ -45,11 +45,12 @@ const createSecretToken = ({_id, firstName}) => {
 
 app.post('/api/additems', async (req, res) => {
   try {
-    const { image, name, price } = req.body;
+    const { image, name, price, description } = req.body;
     const newItem = new Item({
       image,
       name,
-      price
+      price,
+      description
     });
     const savedItem = await newItem.save();
     res.status(201).json(savedItem);
