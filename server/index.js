@@ -39,7 +39,7 @@ app.use(
 
 const createSecretToken = ({_id, firstName}) => {  
   return jwt.sign({_id, firstName}, process.env.TOKEN_KEY, { 
-    expiresIn: '24h',
+    expiresIn: '10s',
   });
 }
 
